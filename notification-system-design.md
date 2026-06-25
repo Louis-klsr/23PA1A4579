@@ -120,8 +120,6 @@ Example:
 
 # Stage 2
 
-# Stage 2
-
 ## Persistent Storage Choice
 
 I suggest using **PostgreSQL** because it provides ACID compliance, supports indexing, and efficiently handles large amounts of structured notification data.
@@ -193,4 +191,37 @@ SET is_read = true
 WHERE id = 'notification_id';
 ```
 
+# Stage 3
+
+The given query is not completely correct because `SELECT` is missing the columns to be retrieved. A valid query would be:
+
+```sql
+SELECT *
+FROM notifications
+WHERE student_id = 1042
+AND is_read = false
+ORDER BY created_at DESC;
+```
+
+The query becomes slow because the database has around 5 million notifications. Without proper indexing, the database has to scan a large number of rows and then sort the results.
+
+To improve performance, I would create a composite index on `student_id`, `is_read`, and `created_at`.
+
+```sql
+CREATE INDEX idx_notifications
+ON notifications (student_id, is_read, created_at DESC);
+```
+
+This reduces the amount of data scanned and makes filtering and sorting much faster.
+
+Adding indexes on every column is not a good idea. Indexes consume extra storage and slow down insert, update, and delete operations. Indexes should only be added on columns that are frequently used for filtering, joining, or sorting.
+
+To find all students who received placement notifications in the last 7 days:
+
+```sql
+SELECT DISTINCT student_id
+FROM notifications
+WHERE type = 'Placement'
+AND created_at >= NOW() - INTERVAL '7 days';
+```
 
