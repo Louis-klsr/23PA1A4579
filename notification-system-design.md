@@ -119,3 +119,78 @@ Example:
 
 
 # Stage 2
+
+# Stage 2
+
+## Persistent Storage Choice
+
+I suggest using **PostgreSQL** because it provides ACID compliance, supports indexing, and efficiently handles large amounts of structured notification data.
+
+## Database Schema
+
+### Students
+
+```sql
+CREATE TABLE students (
+  id BIGINT PRIMARY KEY,
+  name VARCHAR(100),
+  email VARCHAR(100)
+);
+```
+
+### Notifications
+
+```sql
+CREATE TYPE notification_type AS ENUM ('Event', 'Result', 'Placement');
+
+CREATE TABLE notifications (
+  id UUID PRIMARY KEY,
+  student_id BIGINT REFERENCES students(id),
+  type notification_type,
+  message TEXT,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP
+);
+```
+
+## Potential Problems as Data Grows
+
+* Slower query performance due to millions of notifications.
+* Increased database load and storage requirements.
+
+## Solutions
+
+* Add indexes on frequently queried columns (`student_id`, `is_read`, `created_at`).
+* Implement pagination for fetching notifications.
+* Use caching (Redis) for unread counts and frequently accessed data.
+
+## Sample Queries
+
+### Get Notifications
+
+```sql
+SELECT *
+FROM notifications
+WHERE student_id = 1042
+ORDER BY created_at DESC;
+```
+
+### Get Unread Notifications
+
+```sql
+SELECT *
+FROM notifications
+WHERE student_id = 1042
+AND is_read = false
+ORDER BY created_at DESC;
+```
+
+### Mark Notification as Read
+
+```sql
+UPDATE notifications
+SET is_read = true
+WHERE id = 'notification_id';
+```
+
+
