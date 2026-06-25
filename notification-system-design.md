@@ -225,3 +225,20 @@ WHERE type = 'Placement'
 AND created_at >= NOW() - INTERVAL '7 days';
 ```
 
+# Stage 4
+
+Fetching notifications on every page load creates unnecessary database traffic and increases response time.
+
+To improve performance, I would:
+
+* Use **Redis caching** to store frequently accessed notifications and unread counts.
+* Implement **pagination** so that only a limited number of notifications are fetched at a time.
+* Use **WebSockets** to push new notifications in real time instead of repeatedly polling the server.
+* Add **database indexes** on frequently queried columns.
+
+### Trade-offs
+
+* Caching improves speed but introduces cache invalidation complexity.
+* Pagination reduces database load but requires multiple requests to view older notifications.
+* WebSockets provide real-time updates but require maintaining persistent connections.
+* Indexes speed up reads but slightly increase write overhead.
